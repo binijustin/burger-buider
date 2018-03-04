@@ -27,14 +27,16 @@ class BurgerBuilder extends Component {
         purchasable: false,
         purchasing: false,
         loading: false,
+        error : false,
     }
 
     componentDidMount() {
         axios.get('/ingredients.json')
             .then(res => {
-                this.setState({ ingredients: res.data })
-            }, err => {
-
+                 this.setState({ ingredients: res.data });
+            })
+            .catch(err => {
+                this.setState({ error: true });
             })
     }
 
@@ -111,7 +113,7 @@ class BurgerBuilder extends Component {
         }
         axios.post('/orders.json', orderObj)
             .then(res => { console.log(res) },
-            err => console.log(err))
+                err => console.log(err))
             .finally(res => this.setState({ loading: true, purchasing: false }));
     }
 
@@ -123,7 +125,7 @@ class BurgerBuilder extends Component {
             disabledInfo[key] = disabledInfo[key] <= 0
         }
         let orderSummary = null;
-        let burger = <Spinner />
+        let burger = this.state.error ? <p> Ingredients cant be loaded! </p> : <Spinner />
 
         if (this.state.ingredients) {
             burger = (
