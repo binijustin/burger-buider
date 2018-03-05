@@ -1,11 +1,12 @@
 import React, { Component } from 'react';
-
+import { Route, Switch } from 'react-router-dom';
 import Layout from '../src/hoc/Layout/Layout';
 import BurgerBuilder from './containers/BurgerBuilder/BurgerBuilder';
+import Checkout from './containers/Checkout/Checkout';
 
 class App extends Component {
   state = {
-     show : true
+    show: true
   }
 
 
@@ -14,11 +15,14 @@ class App extends Component {
   //     this.setState({show:false});
   //   }, 5000)
   // }
-  render () {
+  render() {
     return (
       <div>
         <Layout>
-          {this.state.show ? <BurgerBuilder /> : null}
+          <Switch>
+            <Route path="/checkout" component={Checkout} />
+            <Route path="/" component={BurgerBuilder} />
+          </Switch>
         </Layout>
       </div>
     );
