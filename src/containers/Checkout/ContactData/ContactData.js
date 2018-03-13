@@ -14,7 +14,11 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Your name',
                 },
-                value: 'Justin Gallardo'
+                value: '',
+                validation: {
+
+                },
+                valid: false
             },
 
             street: {
@@ -23,15 +27,25 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Street',
                 },
-                value: ''
+                value: '',
+                validation: {
+
+                },
+                valid: false
             },
             zipCode: {
                 elementType: 'input',
                 elementConfig: {
-                    type: 'text',
+                    type: 'number',
+                    required: 'true',
                     placeholder: 'ZIP CODE',
                 },
-                value: ''
+                value: '',
+                validation: {
+                    minLength: 5,
+                     maxLength: 5,
+                },
+                valid: false
             },
             country: {
                 elementType: 'input',
@@ -39,7 +53,11 @@ class ContactData extends Component {
                     type: 'text',
                     placeholder: 'Country',
                 },
-                value: ''
+                value: '',
+                validation: {
+
+                },
+                valid: false
             },
             email: {
                 elementType: 'input',
@@ -47,7 +65,11 @@ class ContactData extends Component {
                     type: 'email',
                     placeholder: 'Email',
                 },
-                value: ''
+                value: '',
+                validation: {
+
+                },
+                valid: false
             },
             deliveryMethod: {
                 elementType: 'select',
@@ -64,26 +86,46 @@ class ContactData extends Component {
     orderHandler = (event) => {
         event.preventDefault();
         this.setState({ loading: true });
+        let formData = {};
+        for (let formElementIdentifier in this.state.orderForm) { //transform the order form with key : value pair
+            formData[formElementIdentifier] = this.state.orderForm[formElementIdentifier].value
+        }
+
         const orderObj = {
             ingredients: this.props.ingredients,
-            price: this.props.price
+            price: this.props.price,
+            orderData: formData,
         }
         axios.post('/orders.json', orderObj)
             .then(res => {
                 this.props.history.push("/");
             },
-            err => console.log(err))
+                err => console.log(err))
             .finally(res => this.setState({ loading: true }));
+    }
+
+    checkValidity(value, rules) {
+        let isValid = true;
+        if (rules.required) { //if empty or whitespace
+            isValid = value.trim() !== '' && isValid;
+        }
+        if (rules.minLength) {
+            isValid = value.length >= rules.minLength && isValid;
+        }
+        if (rules.maxLength) {
+            isValid = value.length <= rules.maxLength && isValid;
+        }
     }
 
     inputChangedHandler = (event, identifier) => {
         const updatedOrderForm = {
             ...this.state.orderForm
-        }
-        const updatedFormEl = { ...updatedOrderForm[identifier] };
-        updatedFormEl.value = event.target.value;
-        updatedOrderForm[identifier] = updatedFormEl;
-        this.setState({orderForm  : updatedOrderForm});
+        }//get the keys shallow copy
+        const updatedFormEl = { ...updatedOrderForm[identifier] }; // identify the oe you want to deep copy
+        updatedFormEl.value = event.target.value; //update the value
+        updatedFormEl.valid = this.checkValidity(updatedFormEl.value, updatedFormEl.validation); //update the value
+        updatedOrderForm[identifier] = updatedFormEl; // put the updated copy 
+        this.setState({ orderForm: updatedOrderForm }); //set state
     }
 
     render() {
@@ -94,16 +136,17 @@ class ContactData extends Component {
                 config: this.state.orderForm[key]
             })
         }
-        let form = (<form>
+        let form = (<form onSubmit={this.orderHandler}>
             {formElements.map(formElement => (
                 <Input
                     key={formElement.id}
                     elementType={formElement.config.elementType}
                     elementConfig={formElement.config.elementConfig}
                     value={formElement.config.value}
+                    invalid={!formElement.config.valid}
                     changed={(event) => this.inputChangedHandler(event, formElement.id)} />
             ))}
-            <Button btnType="Success" clicked={this.orderHandler}> Order </Button>
+            <Button btnType="Success" > Order </Button>
         </form>);
         if (this.state.loading) {
             form = <Spinner />
